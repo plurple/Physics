@@ -12,7 +12,7 @@ public class NewtonsTrajectory : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        time += 1.0f / 60.0f;
+        time += Time.deltaTime;
         NewtonsLaw();
     }
 

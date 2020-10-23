@@ -16,7 +16,7 @@ public class SphereToPlaneCollider : MonoBehaviour
     {
         Vector3 startPosition = gameObject.transform.position;
         Vector3 velocity = gameObject.GetComponent<EulersSolver>().velocity;
-        float radiusOfSphere = transform.localScale.x / 2.0f;
+        float radiusOfSphere = transform.localScale.x * 0.5f;
         if (HelperFunctions.GetAngle(normalToHorizontalPlane, -velocity) < 90.0f)
         {
             //vectorBetweenPointToSphere
@@ -27,9 +27,9 @@ public class SphereToPlaneCollider : MonoBehaviour
             float d = DistanceBetweenSphereAndPlane(angleBetweenPAndPlane, p);
             float distanceToContact = (d - radiusOfSphere) / Mathf.Cos(angleBetweenVAndMinusN * Mathf.Deg2Rad);
             if (distanceToContact < float.Epsilon) distanceToContact = 0.0f;
-            if (distanceToContact <= velocity.magnitude * (1.0f / 60.0f))
+            if (distanceToContact <= velocity.magnitude * Time.deltaTime)
             {
-                velocityModifier = distanceToContact / (velocity.magnitude * (1.0f / 60.0f));
+                velocityModifier = distanceToContact / (velocity.magnitude * Time.deltaTime);
             }
         }
     }

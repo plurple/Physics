@@ -6,7 +6,6 @@ public class EulersSolver : MonoBehaviour
 {
     public Vector3 velocity;
     public Vector3 acceleration;
-    private float time = 1.0f / 60.0f;
     private float velocityModifier = 1.0f;
     private SphereToPlaneCollider planeCollider;
     private SphereToSphereCollider sphereCollider;
@@ -30,9 +29,9 @@ public class EulersSolver : MonoBehaviour
 
     public void EulerSolver()
     {
-        velocity += acceleration * time;
+        velocity += acceleration * Time.deltaTime;
         velocity *= velocityModifier;
-        Vector3 newPosition = gameObject.transform.position + velocity * time;
+        Vector3 newPosition = gameObject.transform.position + velocity * Time.deltaTime;
         gameObject.transform.position = newPosition;
     }
 }
