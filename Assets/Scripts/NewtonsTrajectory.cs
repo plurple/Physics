@@ -4,10 +4,15 @@ using UnityEngine;
 
 public class NewtonsTrajectory : MonoBehaviour
 {
-    public Vector3 initialPosition;
+    private Vector3 initialPosition;
     public Vector3 velocity;
     public Vector3 acceleration;
-    public float time = 0.0f;
+    private float time = 0.0f;
+
+    private void Awake()
+    {
+        initialPosition = gameObject.transform.position;
+    }
 
     // Update is called once per frame
     void Update()

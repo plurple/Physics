@@ -17,4 +17,9 @@ public class HelperFunctions
     {
         return number * number;
     }
+
+    public static float DistanceBetweenTwoPoints(float angleBetween, Vector3 p)
+    {
+        return Mathf.Sin(angleBetween * Mathf.Deg2Rad) * Vector3.Magnitude(p);
+    }
 }
