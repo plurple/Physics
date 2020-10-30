@@ -63,20 +63,39 @@ public class CollisionManager : MonoBehaviour
     {
         if (HelperFunctions.GetAngle(plane.normal, -sphere.velocity) < 90.0f)
         {
-            Vector3 startPosition = sphere.transform.position;
-            Vector3 arbitaryPoint = plane.transform.position;
+            Vector3 spherePosition = sphere.transform.position;
+            Vector3 planePosition = plane.transform.position;
             //vectorBetweenPointToSphere
-            Vector3 p = startPosition - arbitaryPoint;
+            Vector3 p = spherePosition - planePosition;
             float angleBetweenNormalAndP = HelperFunctions.GetAngle(plane.normal, p);
             float angleBetweenPAndPlane = 90.0f - angleBetweenNormalAndP;
             float angleBetweenVAndMinusN = HelperFunctions.GetAngle(-plane.normal, sphere.velocity);
             float d = HelperFunctions.DistanceBetweenTwoPoints(angleBetweenPAndPlane, p);
             float distanceToContact = (d - sphere.radius) / Mathf.Cos(angleBetweenVAndMinusN * Mathf.Deg2Rad);
-            if (distanceToContact < float.Epsilon) distanceToContact = 0.0f;
+            if (distanceToContact < float.Epsilon) distanceToContact = 0.0f;            
             if (distanceToContact <= sphere.velocity.magnitude * Time.deltaTime)
             {
-                sphere.velocityModifier = distanceToContact / (sphere.velocity.magnitude * Time.deltaTime);
-                Debug.Log("Collided with plane");
+                Vector3 positionOfContact = spherePosition + sphere.velocity.normalized * distanceToContact - plane.normal.normalized * sphere.radius;
+                float onPlane = Vector3.Dot(positionOfContact - planePosition, plane.normal);
+                if (onPlane <= 0.0001f && onPlane >= -0.0001f)
+                {
+                    Vector3 planeLeft = plane.corner1 - plane.corner2;
+                    Vector3 planeBottom = plane.corner3 - plane.corner2;
+                    float value1 = Vector3.Dot(positionOfContact, planeLeft);
+                    float value2 = Vector3.Dot(positionOfContact, planeBottom);
+                    float bound1 = Vector3.Dot(plane.corner2, planeLeft);
+                    float bound2 = Vector3.Dot(plane.corner1, planeLeft);
+                    float bound3 = Vector3.Dot(plane.corner2, planeBottom);
+                    float bound4 = Vector3.Dot(plane.corner3, planeBottom);
+                    if (bound1 <= value1 &&
+                        value1 <= bound2 &&
+                        bound3 <= value2 &&
+                        value2 <= bound4)
+                    {
+                        sphere.velocityModifier = distanceToContact / (sphere.velocity.magnitude * Time.deltaTime);
+                        Debug.Log("Collided with plane");
+                    }
+                }
             }
         }
     }
