@@ -6,6 +6,10 @@ public class CollisionManager : MonoBehaviour
 {
     private GameObject[] spheres;
     private GameObject[] planes;
+    bool timeAfter = false;
+
+    public GameObject lineRendererObject;
+
 
 
     private void Awake()
@@ -66,27 +70,27 @@ public class CollisionManager : MonoBehaviour
             Vector3 spherePosition = sphere.transform.position;
             Vector3 planePosition = plane.transform.position;
             //vectorBetweenPointToSphere
-            Vector3 p = spherePosition - planePosition;
-            float angleBetweenNormalAndP = HelperFunctions.GetAngle(plane.normal, p);
+            Vector3 p0 = spherePosition - planePosition;
+            float angleBetweenNormalAndP = HelperFunctions.GetAngle(plane.normal, p0);
             float angleBetweenPAndPlane = 90.0f - angleBetweenNormalAndP;
             float angleBetweenVAndMinusN = HelperFunctions.GetAngle(-plane.normal, sphere.velocity);
-            float d = HelperFunctions.DistanceBetweenTwoPoints(angleBetweenPAndPlane, p);
+            float d = HelperFunctions.DistanceBetweenTwoPoints(angleBetweenPAndPlane, p0);
             float distanceToContact = (d - sphere.radius) / Mathf.Cos(angleBetweenVAndMinusN * Mathf.Deg2Rad);
-            if (distanceToContact < float.Epsilon) distanceToContact = 0.0f;            
+            if (distanceToContact < float.Epsilon) distanceToContact = 0.0f;
             if (distanceToContact <= sphere.velocity.magnitude * Time.deltaTime)
             {
                 Vector3 positionOfContact = spherePosition + sphere.velocity.normalized * distanceToContact - plane.normal.normalized * sphere.radius;
                 float onPlane = Vector3.Dot(positionOfContact - planePosition, plane.normal);
                 if (onPlane <= 0.0001f && onPlane >= -0.0001f)
                 {
-                    Vector3 planeLeft = plane.corner1 - plane.corner2;
-                    Vector3 planeBottom = plane.corner3 - plane.corner2;
+                    Vector3 planeLeft = plane.corner1.transform.position - plane.corner2.transform.position;
+                    Vector3 planeBottom = plane.corner3.transform.position - plane.corner2.transform.position;
                     float value1 = Vector3.Dot(positionOfContact, planeLeft);
                     float value2 = Vector3.Dot(positionOfContact, planeBottom);
-                    float bound1 = Vector3.Dot(plane.corner2, planeLeft);
-                    float bound2 = Vector3.Dot(plane.corner1, planeLeft);
-                    float bound3 = Vector3.Dot(plane.corner2, planeBottom);
-                    float bound4 = Vector3.Dot(plane.corner3, planeBottom);
+                    float bound1 = Vector3.Dot(plane.corner2.transform.position, planeLeft);
+                    float bound2 = Vector3.Dot(plane.corner1.transform.position, planeLeft);
+                    float bound3 = Vector3.Dot(plane.corner2.transform.position, planeBottom);
+                    float bound4 = Vector3.Dot(plane.corner3.transform.position, planeBottom);
                     if (bound1 <= value1 &&
                         value1 <= bound2 &&
                         bound3 <= value2 &&
@@ -95,7 +99,33 @@ public class CollisionManager : MonoBehaviour
                         sphere.velocityModifier = distanceToContact / (sphere.velocity.magnitude * Time.deltaTime);
                         Debug.Log("Collided with plane");
                     }
+                    else
+                    {
+                        Vector3 planeLeftRadius = new Vector3(plane.corner1.transform.position.x + sphere.radius, plane.corner1.transform.position.y, plane.corner1.transform.position.z + sphere.radius) - new Vector3(plane.corner2.transform.position.x + sphere.radius, plane.corner2.transform.position.y, plane.corner2.transform.position.z + sphere.radius);
+                        Vector3 planeBottomRadius = new Vector3(plane.corner3.transform.position.x + sphere.radius, plane.corner3.transform.position.y, plane.corner3.transform.position.z + sphere.radius) - new Vector3(plane.corner2.transform.position.x + sphere.radius, plane.corner2.transform.position.y, plane.corner2.transform.position.z + sphere.radius);
+                        float value1Radius = Vector3.Dot(positionOfContact, planeLeftRadius);
+                        float value2Radius = Vector3.Dot(positionOfContact, planeBottomRadius);
+                        float bound1Radius = Vector3.Dot(new Vector3(plane.corner2.transform.position.x + sphere.radius, plane.corner2.transform.position.y, plane.corner2.transform.position.z + sphere.radius), planeLeftRadius);
+                        float bound2Radius = Vector3.Dot(new Vector3(plane.corner1.transform.position.x + sphere.radius, plane.corner1.transform.position.y, plane.corner1.transform.position.z + sphere.radius), planeLeftRadius);
+                        float bound3Radius = Vector3.Dot(new Vector3(plane.corner2.transform.position.x + sphere.radius, plane.corner2.transform.position.y, plane.corner2.transform.position.z + sphere.radius), planeBottomRadius);
+                        float bound4Radius = Vector3.Dot(new Vector3(plane.corner3.transform.position.x + sphere.radius, plane.corner3.transform.position.y, plane.corner3.transform.position.z + sphere.radius), planeBottomRadius);
+                        if (bound1Radius <= value1Radius &&
+                        value1Radius <= bound2Radius &&
+                        bound3Radius <= value2Radius &&
+                        value2Radius <= bound4Radius)
+                        {
+                            //do a bounding box check once written.
+                        }
+                    }                    
                 }
+                else if (sphere.velocityModifier < 1.0f)
+                {
+                    sphere.velocityModifier = distanceToContact / (sphere.velocity.magnitude * Time.deltaTime);
+                }
+            }
+            else if (sphere.velocityModifier < 1.0f)
+            {
+                sphere.velocityModifier = distanceToContact / (sphere.velocity.magnitude * Time.deltaTime);
             }
         }
     }

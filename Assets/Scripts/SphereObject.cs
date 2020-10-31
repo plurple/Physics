@@ -18,6 +18,6 @@ public class SphereObject : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        EulersSolverTrajectory.EulerSolver(this);
+        EulersSolverTrajectory.EulerSolver(this);        
     }
 }
