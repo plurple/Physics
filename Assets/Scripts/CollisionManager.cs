@@ -6,11 +6,7 @@ public class CollisionManager : MonoBehaviour
 {
     private GameObject[] spheres;
     private GameObject[] planes;
-    bool timeAfter = false;
-
-    public GameObject lineRendererObject;
-
-
+       
 
     private void Awake()
     {
@@ -48,17 +44,23 @@ public class CollisionManager : MonoBehaviour
     public void SphereToSphereCollision(SphereObject sphere1, SphereObject sphere2)
     {
         Vector3 vectorBetweenCenters = sphere2.transform.position - sphere1.transform.position;
-        Vector3 velocity = sphere1.velocity;
-        float angleBetweenCentersAndVelocity = HelperFunctions.GetAngle(vectorBetweenCenters, velocity);
-        float distanceBetweenSphereCentersAtClosest = HelperFunctions.DistanceBetweenTwoPoints(angleBetweenCentersAndVelocity, vectorBetweenCenters);
-        if (distanceBetweenSphereCentersAtClosest <= sphere1.radius + sphere2.radius)
+        Vector3 velocitySphere1 = sphere1.velocity * Time.deltaTime;
+        Vector3 velocitySphere2 = sphere2.velocity * Time.deltaTime;
+        Vector3 velocitySphere1RelativeToSphere2 = velocitySphere1 - velocitySphere2;
+        float angleBetweenCentersAndVelocity = HelperFunctions.GetAngle(vectorBetweenCenters, velocitySphere1RelativeToSphere2);
+        if (angleBetweenCentersAndVelocity <= 90.0f)
         {
-            float distanceBetweenCollisionPointAndClosestPoint = Mathf.Sqrt(HelperFunctions.Squared(sphere1.radius + sphere2.radius) - HelperFunctions.Squared(distanceBetweenSphereCentersAtClosest));
-            float distanceToCollision = Mathf.Cos(angleBetweenCentersAndVelocity * Mathf.Deg2Rad) * vectorBetweenCenters.magnitude - distanceBetweenCollisionPointAndClosestPoint;
-            if (distanceToCollision < float.Epsilon) distanceToCollision = 0.0f;
-            if (distanceToCollision <= velocity.magnitude * Time.deltaTime)
+            float distanceBetweenSphereCentersAtClosest = HelperFunctions.DistanceBetweenTwoPoints(angleBetweenCentersAndVelocity, vectorBetweenCenters);
+            if (distanceBetweenSphereCentersAtClosest <= sphere1.radius + sphere2.radius)
             {
-                sphere1.velocityModifier = distanceToCollision / (velocity.magnitude * Time.deltaTime);
+                float distanceBetweenCollisionPointAndClosestPoint = Mathf.Sqrt(HelperFunctions.Squared(sphere1.radius + sphere2.radius) - HelperFunctions.Squared(distanceBetweenSphereCentersAtClosest));
+                float distanceToCollision = Mathf.Cos(angleBetweenCentersAndVelocity * Mathf.Deg2Rad) * vectorBetweenCenters.magnitude - distanceBetweenCollisionPointAndClosestPoint;
+                if (distanceToCollision < float.Epsilon) distanceToCollision = 0.0f;
+                if (distanceToCollision <= velocitySphere1RelativeToSphere2.magnitude)
+                {
+                    sphere1.velocityModifierSphere = distanceToCollision / velocitySphere1RelativeToSphere2.magnitude;
+                    sphere2.velocityModifierSphere = distanceToCollision / velocitySphere1RelativeToSphere2.magnitude;
+                }
             }
         }
     }
@@ -77,7 +79,7 @@ public class CollisionManager : MonoBehaviour
             float d = HelperFunctions.DistanceBetweenTwoPoints(angleBetweenPAndPlane, p0);
             float distanceToContact = (d - sphere.radius) / Mathf.Cos(angleBetweenVAndMinusN * Mathf.Deg2Rad);
             if (distanceToContact < float.Epsilon) distanceToContact = 0.0f;
-            if (distanceToContact <= sphere.velocity.magnitude * Time.deltaTime)
+            if (distanceToContact <= sphere.velocity.magnitude)
             {
                 Vector3 positionOfContact = spherePosition + sphere.velocity.normalized * distanceToContact - plane.normal.normalized * sphere.radius;
                 float onPlane = Vector3.Dot(positionOfContact - planePosition, plane.normal);
@@ -96,7 +98,7 @@ public class CollisionManager : MonoBehaviour
                         bound3 <= value2 &&
                         value2 <= bound4)
                     {
-                        sphere.velocityModifier = distanceToContact / (sphere.velocity.magnitude * Time.deltaTime);
+                        sphere.velocityModifierPlane = distanceToContact / (sphere.velocity.magnitude * Time.deltaTime);
                         Debug.Log("Collided with plane");
                     }
                     else
@@ -118,14 +120,10 @@ public class CollisionManager : MonoBehaviour
                         }
                     }                    
                 }
-                else if (sphere.velocityModifier < 1.0f)
+                else if (sphere.velocityModifierPlane < 1.0f)
                 {
-                    sphere.velocityModifier = distanceToContact / (sphere.velocity.magnitude * Time.deltaTime);
+                    sphere.velocityModifierPlane = distanceToContact / (sphere.velocity.magnitude * Time.deltaTime);
                 }
-            }
-            else if (sphere.velocityModifier < 1.0f)
-            {
-                sphere.velocityModifier = distanceToContact / (sphere.velocity.magnitude * Time.deltaTime);
             }
         }
     }
