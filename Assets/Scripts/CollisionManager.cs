@@ -14,11 +14,6 @@ public class CollisionManager : MonoBehaviour
         planes = GameObject.FindGameObjectsWithTag("Plane");
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-    }
-
     // Update is called once per frame
     void Update()
     {
@@ -75,11 +70,11 @@ public class CollisionManager : MonoBehaviour
             Vector3 p0 = spherePosition - planePosition;
             float angleBetweenNormalAndP = HelperFunctions.GetAngle(plane.normal, p0);
             float angleBetweenPAndPlane = 90.0f - angleBetweenNormalAndP;
-            float angleBetweenVAndMinusN = HelperFunctions.GetAngle(-plane.normal, sphere.velocity);
+            float angleBetweenVAndMinusN = HelperFunctions.GetAngle(-plane.normal, sphere.velocity * Time.deltaTime);
             float d = HelperFunctions.DistanceBetweenTwoPoints(angleBetweenPAndPlane, p0);
             float distanceToContact = (d - sphere.radius) / Mathf.Cos(angleBetweenVAndMinusN * Mathf.Deg2Rad);
             if (distanceToContact < float.Epsilon) distanceToContact = 0.0f;
-            if (distanceToContact <= sphere.velocity.magnitude)
+            if (distanceToContact <= sphere.velocity.magnitude * Time.deltaTime)
             {
                 Vector3 positionOfContact = spherePosition + sphere.velocity.normalized * distanceToContact - plane.normal.normalized * sphere.radius;
                 float onPlane = Vector3.Dot(positionOfContact - planePosition, plane.normal);
@@ -98,8 +93,8 @@ public class CollisionManager : MonoBehaviour
                         bound3 <= value2 &&
                         value2 <= bound4)
                     {
-                        sphere.velocityModifierPlane = distanceToContact / (sphere.velocity.magnitude * Time.deltaTime);
-                        Debug.Log("Collided with plane");
+                        Vector3 bounceUnitVector = 2 * plane.normal * Vector3.Dot(plane.normal, -sphere.velocity.normalized) + sphere.velocity.normalized;
+                        sphere.velocity = bounceUnitVector * (sphere.velocity.magnitude);
                     }
                     else
                     {
@@ -119,10 +114,6 @@ public class CollisionManager : MonoBehaviour
                             //do a bounding box check once written.
                         }
                     }                    
-                }
-                else if (sphere.velocityModifierPlane < 1.0f)
-                {
-                    sphere.velocityModifierPlane = distanceToContact / (sphere.velocity.magnitude * Time.deltaTime);
                 }
             }
         }
