@@ -7,7 +7,6 @@ public class SphereObject : MonoBehaviour
     public float radius;
     public float mass = 10;
     public Vector3 velocity;
-    public float velocityModifierSphere = 1.0f;
 
     // Start is called before the first frame update
     void Start()

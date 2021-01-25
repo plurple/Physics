@@ -9,8 +9,6 @@ public class EulersSolverTrajectory : MonoBehaviour
     public static void EulerSolver(SphereObject sphere)
     {
         sphere.velocity += acceleration * Time.deltaTime;
-        float velMod = sphere.velocityModifierSphere;
-        sphere.velocity *= velMod;
         Vector3 newPosition = sphere.transform.position + sphere.velocity * Time.deltaTime;
         sphere.transform.position = newPosition;
     }

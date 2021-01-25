@@ -43,21 +43,24 @@ public class CollisionManager : MonoBehaviour
         Vector3 velocitySphere2 = sphere2.velocity * Time.deltaTime;
         Vector3 velocitySphere1RelativeToSphere2 = velocitySphere1 - velocitySphere2;
         float angleBetweenCentersAndVelocity = HelperFunctions.GetAngle(vectorBetweenCenters, velocitySphere1RelativeToSphere2);
-        if (angleBetweenCentersAndVelocity <= 90.0f)
+
+        float distanceBetweenSphereCentersAtClosest = HelperFunctions.DistanceBetweenTwoPoints(angleBetweenCentersAndVelocity, vectorBetweenCenters);
+        if (distanceBetweenSphereCentersAtClosest <= sphere1.radius + sphere2.radius)
         {
-            float distanceBetweenSphereCentersAtClosest = HelperFunctions.DistanceBetweenTwoPoints(angleBetweenCentersAndVelocity, vectorBetweenCenters);
-            if (distanceBetweenSphereCentersAtClosest <= sphere1.radius + sphere2.radius)
+            float distanceBetweenCollisionPointAndClosestPoint = Mathf.Sqrt(HelperFunctions.Squared(sphere1.radius + sphere2.radius) - HelperFunctions.Squared(distanceBetweenSphereCentersAtClosest));
+            float distanceToCollision = Mathf.Cos(angleBetweenCentersAndVelocity * Mathf.Deg2Rad) * vectorBetweenCenters.magnitude - distanceBetweenCollisionPointAndClosestPoint;
+            if (distanceToCollision < float.Epsilon) distanceToCollision = 0.0f;
+            if (distanceToCollision <= velocitySphere1RelativeToSphere2.magnitude)
             {
-                float distanceBetweenCollisionPointAndClosestPoint = Mathf.Sqrt(HelperFunctions.Squared(sphere1.radius + sphere2.radius) - HelperFunctions.Squared(distanceBetweenSphereCentersAtClosest));
-                float distanceToCollision = Mathf.Cos(angleBetweenCentersAndVelocity * Mathf.Deg2Rad) * vectorBetweenCenters.magnitude - distanceBetweenCollisionPointAndClosestPoint;
-                if (distanceToCollision < float.Epsilon) distanceToCollision = 0.0f;
-                if (distanceToCollision <= velocitySphere1RelativeToSphere2.magnitude)
-                {
-                    sphere1.velocityModifierSphere = distanceToCollision / velocitySphere1RelativeToSphere2.magnitude;
-                    sphere2.velocityModifierSphere = distanceToCollision / velocitySphere1RelativeToSphere2.magnitude;
-                }
+                Vector3 normalisedContactDirection = vectorBetweenCenters.normalized;
+                float velocityOfSphere1InContactDirection = Vector3.Dot(sphere1.velocity, normalisedContactDirection);
+                float velocityOfSphere2InContactDirection = Vector3.Dot(sphere2.velocity, normalisedContactDirection);
+                float momentum = (2.0f * (velocityOfSphere1InContactDirection - velocityOfSphere2InContactDirection)) / (sphere1.mass + sphere2.mass);
+                sphere1.velocity = sphere1.velocity - momentum * sphere2.mass * normalisedContactDirection;
+                sphere2.velocity = sphere2.velocity + momentum * sphere1.mass * normalisedContactDirection;
             }
         }
+
     }
 
     public void SphereToPlaneCollision(SphereObject sphere, PlaneObject plane)
